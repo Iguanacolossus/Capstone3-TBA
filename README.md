@@ -23,6 +23,7 @@
 
 
 ## 2. **unsupervised learning:**
-> ### image clustering 
->http://www.cs.toronto.edu/~kriz/cifar.html
+> ### demension reduction and clustering of sensor measurments from water treatment plant to find operational state of plant. (maybe anomoly detection?)
+>http://archive.ics.uci.edu/ml/datasets/Water+Treatment+Plant
+> 38 attributes, 527 samples
 
