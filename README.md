@@ -44,3 +44,6 @@ Here is a new elbow plot for the normalized data set<br>
 ![normelbow](images/elbow_dtw_normalized.png)<br>
 this elbow is more elusive then the previouse one on the un normalized data set. this makes me think that this is not the right direction to go. <br>
 
+this may be due to the fact that the amplitude variation with time is useful in differentiating the clusters. <br>
+
+This leads me to the idea of pivoting from a time series clustering model to  makeing a dataframe of extracted features from each time series . then clustering with not time series methods.<br>
