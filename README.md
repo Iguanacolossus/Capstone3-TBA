@@ -56,7 +56,9 @@ This leads me to the idea of pivoting from a time series clustering model to  ma
 
 
 ## **Classification with CNN**
- why
+Jiang and Yin (2015) proposed to transform the 1D acceleration
+signal into a 2D image-like signal so that CNN can be applied to do the feature extraction and
+classification
 
 ## DAta preprocessing
 no normalization but same convertion to rho to avoid the problems assosiated with a writ watch shifting
@@ -81,3 +83,5 @@ why i chose recall
 ## Results 
 confusion matrix
 
+
+## moving forward
