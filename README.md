@@ -97,7 +97,10 @@ Since the validation loss is goin up and up , instead of more training time I wi
 
 This deeper model did not do better interms of recall score. As far as loss, It did worse learning even with of double the amount of trainable parameters. After talking to an assosiet about audio analysis with spectrograms I have concluded that the reason why my spectrograms are doing so poorying maybe do to the fact they are that they are very small. I do not know that the sample rate or length of samples was used in the  Jiang and Yin (2015) paper. but compair to music audio data that utilize spectrogram modeling, this accelerometer sampling rate is 3000 times lower leading to much less time windows to map to the spectrogram. 
 
+## LSTM
 
+## Ensemble LSTM 1d CNN
+Combining the predictions from multiple neural networks adds a bias that in turn counters the variance of a single trained neural network model. The results are predictions that are less sensitive to the specifics of the training data, choice of training scheme, and the serendipity of a single training run.
 
 
 ## Results 
