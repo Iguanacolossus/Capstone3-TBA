@@ -22,8 +22,8 @@ To perform my clustering I wanted to pick a model that would utilize the time in
 ## Distance Metric Used in Model
 To find the distance or similarity of time series samples I chose to use the inter model distance metric  Dynamic Time Warping. DTW deals with time shifts in such a way that alow th emodel to compair signal patterens even if the time or phase is shifted. Also, cluster centers are computed as the barycenters with respect to DTW, hence they allow to retrieve a sensible average shape whatever the temporal shifts in the cluster.
 
-## Determining how many different activities the model pick oout of the data.
-Below is a plot of 9 models with k hyperparameters ranginf from 1 to 9.<br>
+## Determining how many different activities the model can pick out of the data.
+Below is a plot of 9 models with k hyperparameter ranging from 1 to 9.<br>
 ![elbow](images/elbow_dtw.png)
 
 This plot shows that the optimal number of clusters is 2,3 or 4. I will now make silhouette plots to compare the kmeans clustering model with 2 to 4 clusters. The silhouette value is a measure of how similar an object is to its own cluster (cohesion) compared to other clusters (separation).<br>
@@ -53,8 +53,8 @@ This non elbow may be due to the fact that the amplitude is useful in differenti
 
 <!--This leads me to the idea of pivoting from a time series clustering model to  makeing a dataframe of extracted features from each time series . then clustering with not time series methods.<br> -->
 
-## Clustering extracted features
-??
+<!--## Clustering extracted features
+??-->
 
 The clustering approach to identifying features May not be fiezable with this data set. A supurvised learning approach may have to be used in the field so next I will pivot to that.<br>
 
@@ -66,25 +66,27 @@ Here, I use the rho and phi channels of my accelerometer data. I used numpy to r
 
 I performed a validation train test split at 25/75 ratio for fitting. 
 
-## Architecture
+## Architecture for 1D CNN 
 I chose this becasue it is similar to leNet, A classic simple architecture with two convolution layers, max pooling, and drop out, and two dense layers. I also chose one nueron and sigmoid activation for the output layer because I wanted to make a model that would predict seizure or no seizer in a binary manner.<br> 
 ![summary](images/model1_summary_2channel.png)
 
 ## Metrics
 I chose to use recall as my primary metric in evaluating my model becasue the classes are imbalenced and a False negative could be life threatening. It would be better for a family member to contact a person with a false alarm over the persons family to not be contacted at all during a seizure event.
 
-## How The CNN  Learned
+## How The 1D CNN  Learned
+This simple model did pretty decient with a recall score evening out at around 80. This would mean that 80 percent of seizures would be correctly identified. I would like to see if I can make this better. 
 ![lr_plot](images/lr_plot_model1_rhophi_300epochs.png)
 
 ## How Can I Make This Better?
-Upon researching how i could imporov my score with this CNN arcitecture I came across a thesis paper by Xiaoyo Yu on Human activity recovnition that referenced an idea from Jiang and Yin (2015) who converted there 1 demensional time series  data into 2 dementional descrete fourier transformations. Using this idea I decided to make my own 2d fourier transformation by take the fast forier transformation and sliding windows of time for each sample to make a spectragram like the ones use in audio data analysis.  <br>
+Upon researching how i could imporov my score with this 1D CNN arcitecture I came across a thesis paper by Xiaoyo Yu on Human activity recognition that referenced an idea from Jiang and Yin (2015) who converted there 1 demensional time series accelreometer data into 2 dementional descrete fourier transformations. Using this idea I decided to make my own 2d fourier transformation by take the fast forier transformation at sliding windows of time for each sample to make a spectragram like the ones use in audio data analysis.  <br>
 
 
 For each channel of each time series sample I created a spectrogram. an example of a sample and its two channels in below. <br>
 ![s](images/spectrogram_sample2.png)<br>
-A spectrogram is used in speech and music analysis becasue its a way to visualize the fourier transformation as time passes.
 
-I then reshaped my data set to be (n_samples, spec_height, spec_width, n_channels) in preporation to fit with a CNN. I usedf almost the exact architecture for the last 1D CNN with some changes for 2D convolution.
+<!--A spectrogram is used in speech and music analysis becasue its a way to visualize the fourier transformation as time passes.-->
+
+I converted all samples to spectrograms traforming my data frame to the shape  (n_samples, spec_height, spec_width, n_channels) in preporation to fit with a CNN. I used almost the exact same architecture for the last 1D CNN with some changes for 2D convolution.
 
 ## How did it learned
 ![spectrogram_lr](images/model4_specs_300.png)
@@ -95,16 +97,75 @@ Since the validation loss is goin up and up , instead of more training time I wi
 ![deeper1](images/deeper1_sumary.png)<br>
 ![depper1_lr](images/model_deeper1_specs_300.png)
 
-This deeper model did not do better interms of recall score. As far as loss, It did worse learning even with of double the amount of trainable parameters. After talking to an assosiet about audio analysis with spectrograms I have concluded that the reason why my spectrograms are doing so poorying maybe do to the fact they are that they are very small. I do not know that the sample rate or length of samples was used in the  Jiang and Yin (2015) paper. but compair to music audio data that utilize spectrogram modeling, this accelerometer sampling rate is 3000 times lower leading to much less time windows to map to the spectrogram. 
+This deeper model did not do better interms of recall score. As far as loss, It did worse with the doubled amount of trainable parameters. After talking to an assosiet about audio analysis with spectrograms I have concluded that the reason why my spectrograms are doing so poorying maybe due to the fact that they are very small. I do not know that the sample rate or length of samples was used in the  Jiang and Yin (2015) paper. But, compair to music audio data that utilize spectrogram modeling, this accelerometer sampling rate is 3000 times lower leading to much less time windows to map to the spectrogram and very low resulotion images.
 
-## LSTM
-
-## Ensemble LSTM 1d CNN
-Combining the predictions from multiple neural networks adds a bias that in turn counters the variance of a single trained neural network model. The results are predictions that are less sensitive to the specifics of the training data, choice of training scheme, and the serendipity of a single training run.
+## LSTM (is this a correct statement)
+My next thought is that maybe for  these particular time series sample the the model would benifit from 'remembering' and 'forgeting' values over intervals in time. This is a little more flexable then the fixed kernal size in the CNN. 
 
 
-## Results 
-confusion matrix
+## First LTSM Neural Network
+I first try a very sime LTSM and train for 900 epochs<br>
+![lstm1_sum](images/LSTM1_summary.png)
+
+The recalll was extremely unstable and stayed roughly around .2 after 75 epochs. <br>
+![LSTME1_lr](images/LSTM1_900epochs.png)
+
+Next I try increasing the amount of trainable peramters by increaseing the number of neurons per layer to see if this helps the network learn.
+![lstm2_sum](images/LSTM2_summary.png)<br>
+This increased the trainable parameters by an order of magnetude.<br>
+
+TThis chnge does not seem to be doing the trick. Recall is still low and very irratic.<br>
+![lstm2_lr](images/LSTM2_300epochs.png)<br>
+
+Before changing direction with my model I first wanted to try making this LSTM NN deeper. Below is a the summary of a third LSTM that I added two dence layers and and added more neorons per layer then the first but less then the second for training time perposes. <br>
+![LSTM3_sum](images/LSTM3_summary.png)<br>
+
+The Learning plots of this deeper LSTM network are below:<br>
+![LSTM3_lr](images/LSTM3_300epochs.png)<br>
+This deeper model seems to have some peek recall scores higher then the other two LSTM but it is showing signs of over fitting. the validation and test scores are deviating. <br>
+
+Lets add 50% drop out at the hidden layers out to the deep model to see if this helps wit over fitting.<br>
+![LSTM3_DO](images/LSTM3_with_do_epochs.png)<br>
+Adding drop out di prevent the the over fitting but after alot of time training the model is very iratic and the recall still pretty low. <br>
+
+So car the simple 1D convolutional neural network ahas worked the bestso I am going to go back to something like that except adopt architecture idea from an arcitecture that was designed for time series.
+
+## Simple WaveNet Architecture
+
+WaveNet was developed by DeepMind researchers in 2016 for doing audio tasks such as text-to-speech. The main difference between the 1d convultion neural from my best model thus far and Wave net are dilation with in the layers. A dilated convolutionis a convolution where the filter is applied over an area larger than its length by skipping input values with a certain step. It is 
+equivalent to a convolution with a **larger filter** derived from the 
+original filter by dilating it with zeros, but is significantly **more 
+efficient.** This is similar to pooling or strided  convolutions, but 
+here the output has the same size as the input. As a special case, 
+dilated convolution with dilation 1 yields the standard convolution.  By useing dilation the model gets a better global picture of each sample to capture more contextual information. There is also the benifit of faster run time.
+
+Original WaveNet was made to predict a series but I chose an output layer on one neuron and a sigmoid activation function to squiz the information into a binary prediction. It also was very very deep with patters of doubling dilation. I started small with one pattered of doubling dilarion. architecture summary is below. <br>
+
+![simplewave_sum](images/simpleWave_summary.png)
+
+Judging by the learning curve this model is our best so far.<br>
+![simplewave_lr](images/simpleWave_300epochs_2.png)<br>
+
+This model does not show signs of over fitting. The recall is high and stable over epochs and the fitting time was very fast. I will save this model and move forward with evaluating with the hold out data that the model has never seen.<br>
+
+## Evaluating simpleWave 1D CNN on Holdout Data
+
+Utalizing the built in threshod of model.predict() the confusion matrix for simpleWave is as follows.<br>
+![cm1](images/cm_simpleWave.png)<br>
+This confusin matrix looks pretty good but what im interested in it the fasle positives and the false nagatives. The threshold needs to be tuned such that the false negative are minimized with out in turn causing too many false positives. It is very important that the model identifies the true seizure events but if a user of the product keeps getting bugged by false positives they may turn the device off. <br>
+
+To find this balance I will have the waveNet model return the probability of each sample being positive, then compute the the f1 score of the predictions at each threshold. I am using the f1 score to assised in finding a ballnce of percision and recall.<br>
+
+![pr_curve](images/PR_curve.png)
+
+To see if this threshold will give us the ratio of false positive to false negativ we want I made a new confusion matrics with the threshold of .04. <br>
+
+![cm2](images/best_cm1.png)<br>
+
+With this model and this threshold the false negative are the smalles probability and the false positives are are still pretty low. I believe this is a very good model for our needs.
 
 
-## moving forward
+# Conclusion
+ - By attempting to cluster the data, it revieled that seizure data may not be unique enough for a simple time series cluster model to identify. If clustering wants to be persued , the data can be featurized andd other techniques may be more useful
+ - Out of all the deep learing models tried on this data set, 1D convolutional neural network with double dilation amounts worked the best. 
+ - Moving forward I believe it would benificial to try and use this dame model with data that contains other human activities
