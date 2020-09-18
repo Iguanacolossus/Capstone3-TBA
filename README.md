@@ -28,8 +28,8 @@ Below is a plot of 9 models with k hyperparameter ranging from 1 to 9.<br>
 
 This plot shows that the optimal number of clusters is 2,3 or 4. I will now make silhouette plots to compare the kmeans clustering model with 2 to 4 clusters. The silhouette value is a measure of how similar an object is to its own cluster (cohesion) compared to other clusters (separation).<br>
 ## Evaluate the model a diferent choses for cluster number
-![km_sil_2](images/sil_plot_c2.png)
-![km_sil_3](images/sil_plot_c3.png)
+![km_sil_2](images/sil_plot_c2.png)<br>
+![km_sil_3](images/sil_plot_c3.png)<br>
 ![km_sil_4](images/sil_plot_c4.png)
 
 
