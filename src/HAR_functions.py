@@ -1,3 +1,4 @@
+import matplotlib.pyplot as plt
 import numpy as np
 #rotatation around z axis
 def rot_matrix_z(x,y,z,theta):
@@ -230,3 +231,58 @@ def ts_df_to_spectrogram(ts_df, channels=2):
         list_.append(im)
         spec_df = np.stack(list_, axis=0)
     return spec_df
+
+from sklearn.metrics import roc_curve
+def ROC(y_holdout, proba):
+
+    fpr,tpr, thresholds = roc_curve(y_holdout, proba)
+    plt.plot([0,1],[0,1],linestyle='--',color='red',label='Random Guessing',alpha=.5)
+    plt.plot(fpr,tpr, label='simpleWave',color='blue')
+    
+    plt.plot([0,0,1],[0,1,1],linestyle='--',color='green', alpha=.5)
+    plt.xlabel('False Positive Rate',size=14)
+    plt.ylabel('True Positive Rate',size=14)
+    plt.legend()
+    plt.show()
+
+from sklearn.metrics import precision_recall_curve
+def PRC(y_holdout,proba):
+    precision, recall, thresh = precision_recall_curve(y_holdout, proba)
+    no_skill = len(y_holdout[y_holdout==1]) / len(y_holdout)
+    plt.plot([0, 1], [no_skill, no_skill], linestyle='--', label='Random Guessing',color=(.6,.6,.6))
+    
+    plt.plot(recall,precision,'-o', label='simpleWave',color='blue',markersize=3)
+
+    plt.xlabel('Recall',size=14)
+    plt.ylabel('Precision',size=14)
+    plt.legend(loc = 'center left')
+    return precision, recall, thresh
+
+import seaborn as sns
+def custom_cm(y_holdout,proba,threshold,file):
+    tp,fp,tn,fn = 0,0,0,0
+    for i, (y_hold,prob) in enumerate(zip(y_holdout,proba)):
+        # if y_hold = 1 and prob > thresh --> tp
+        # if y_hold = 1 and prob < thresh --> fn
+        #if y_hold = 0 and prob > thresh --> fp
+        #if y_hold = 0 and prob < thresh --> tn
+        if y_hold == 1:
+            if prob > threshold:
+                tp += 1
+            else:
+                fn += 1
+        elif y_hold ==0:
+            if prob > threshold:
+                fp += 1
+            else:
+                tn +=1
+    # [[tp,fp],[fn,tn]]
+    cm = [[tp/len(y_holdout),fp/len(y_holdout)],[fn/len(y_holdout),tn/len(y_holdout)]]
+    sns.heatmap(cm,annot=True,cmap='Purples')
+    plt.xticks([.5,1.5],['positive','negative'])
+    plt.xlabel('Ground Truth',size=16)
+    plt.yticks([.5,1.5],['positive','negative'])
+    plt.ylabel('Predicted',size=16)
+    plt.title('Confusion Matrix simpleWave ',size=14)
+    
+    #plt.savefig(f'../images/{file}.png')
