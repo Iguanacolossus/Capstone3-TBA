@@ -1,190 +1,185 @@
-# **Identifing Seizures From Wrist Mounted Accelerometer data**
-
-
+# **Identifying Seizures From Wrist Mounted Accelerometer Data**
+ 
+ 
 ## Abstract
-why seizure can be dangurouse and how having this on your smart watch may make people feel safer giving them a better life. plans is to explore the data by applying some unsupervised clustering to see if seizure data has a patteren that stands out and separate from daily tasks. the I will train a classificatino model to learn exacly what how to identify seizer activity so that is can be used in the implamentation yda yada. I plan on trying deep learning becasue neural networks have been proven to do well picking up on unpersevable patterens. I plan on making 4 different NN and comparing them to pick the best performing model. LSTM simple 1d cdd, wave net style 1 d cnn and doing a 2d fourier trasformation and using a 2d CNN.
+Not knowing when your next seizure will be is a source of anxiety for people with epilepsy and there loved ones. Seizures can be dangerous and frightening if alone and not in a safe place. Knowing that a device like your smartwatch is there to call a family member, and the paramedics if needed, may ease some stress of daily life and increase the well being of those with epilepsy. I have acquired some wrist-mounted accelerometer data of people doing activities including mimicking seizure. My plan is to explore the data by applying some unsupervised clustering to see if seizure activity has a pattern that is unique from daily tasks. Then I will build and train a classification model to learn exactly how to identify seizer activity which then could be the model behind a smartwatch health alert app. I plan on utilizing deep learning because neural networks have been proven to do well in picking up on unperceivable patterns. I plan on making four different neural network models and comparing them to pick the best performing model. These four are LSTM, simple 1d CNN, NaveNet style 1d CNN and a 2D CNN with Fourier transformed signals.
+
 
 ## Data Source
-The data for this project was generated with healthy participants simulating the class activities of performed. Data was collected from 6 participants using a tri-axial accelerometer on the dominant wrist whilst conducting 4 different activities including mimicking a seizure. The data can be found 
-[here](http://www.timeseriesclassification.com/description.php?Dataset=Epilepsy). Each participant performed each activity 10 times at least. The mimicked seizures were trained and controlled, following a protocol defined by an medical expert. The sampling frequency was 16 Hz. Samples where truncated to the length of the shortest recording retained at about 30 seconds.
-
+The data for this project was generated with healthy participants simulating the class activities. Data were collected from 6 participants using a tri-axial accelerometer on the dominant wrist whilst conducting 4 different activities including mimicking a seizure. The data can be found
+[here](http://www.timeseriesclassification.com/description.php?Dataset=Epilepsy). Each participant performed each activity 10 times at least. The mimicked seizures were trained and controlled, following a protocol defined by a medical expert. The sampling frequency was 16 Hz. Samples were truncated to the length of the shortest recording retained at about 30 seconds. Each recording is of one activity only.
 
 ## Data Pre-Processing
-I recieved the data in .arff format which I read in to my python environment with scipy.io.arff loadarff then converted to pandas for easier insepection and manipulation. Each row of the data was a sample of one physical activity. the signal was packed into list of  lists corisponding to the signal in the x, y and z directions. every sample was 206 time steps. There is also a column of the label for each activity. <br>
+I received the data in .arff format which I read into a python environment with scipy.io.arff loadarff then converted to a pandas data frame for easier inspection and manipulation. Each row of the data was a sample of one physical activity. The signal was packed into a nested list with the inner lists corisponding to the signal in the x, y, and z directions. Every sample was 206 time steps. There is also a column of the label for each activity.  Below is an image of the raw data read into a pandas data frame.<br>
 ![raw](images/raw_data_pd.png)<br>
-In the wild a this technology would be used in smart watches and I wanted to make sure that if a person were to ware there watch at a different angle on there wrist that the data still reflected the same acceleration. I compaired the data before and after 45% rotation aroung the z access. I observed that if the data was left in cartisien coordinants that that both x and y coordinants change when the acceleromter is rotated but if i converted the data to scherical coordiance, then oonly one of the coordinants changed. In hopes of keeping the most information from the data but still taking into consideration rotation of the accelrometer I converted the whole data set to scherical coordinance and did not use the theta coordinance moving forward.  <br> 
+In the wild, this technology would be used in smartwatches and I want to make sure that if a person were to ware there watch at a different angle on their wrist that the data still reflected the same acceleration. Below, I compare the data before and after 45$^{\circ}$ rotation around the z access.
+ <br> 
 ![coord compare](images/compare_coords_all.png)
 <br>
+ I observe that if the data was left in cartesian coordinates that both x and y change when the accelerometer is rotated, but if I convert the data to spherical coordinates, then only one of the coordinates changes. In hopes of keeping the most information from the data but minimizing differences when the accelerometer is rotated, I am  converting the whole data set to spherical coordinance and only using rho and phi directions moving forward.
+
 
 ## **Looking for patterns with unsupervised learning**
-My fisrt thought was that if the seizure activity was unique enough from the other activity it would be very handy to be able to cluster it out from other activities so this model could be used on different data with other unknow activities.  
-
+ 
 ## Time Series Clustering
-To perform my clustering I wanted to pick a model that would utilize the time information and pattern as apposed to feature engineering that might take some domain spacific expertise. I utalised a model class from a Python package called tslearn that build on scikit-learn, numpy and scipy. For this clustering model I used the TimeSeriesKmeans clustering algorithm from th emodule tslear.clustering. FOr this model only one channel of accelrerometer dat could be used as input so I chose to use the rho coordinant in this model.
-
+To perform clustering on the data, I want to pick a model that will utilize the time information and pattern of the signal as opposed to feature engineering. Feature engineering might take some domain-specific expertise also, I want to leave the data less tampered with if possible. I will utiliz a model class from a Python package called tslearn that builds on Scikit-learn, NumPy, and Scipy. For this clustering model, I will use the TimeSeriesKmeans clustering algorithm from the module tslear.clustering. For this model, only one channel of accelerometer data could be used as input so I chose to use the rho coordinate.
+ 
 ## Distance Metric Used in Model
-To find the distance or similarity of time series samples I chose to use the inter model distance metric  Dynamic Time Warping. DTW deals with time shifts in such a way that alow th emodel to compair signal patterens even if the time or phase is shifted. Also, cluster centers are computed as the barycenters with respect to DTW, hence they allow to retrieve a sensible average shape whatever the temporal shifts in the cluster.<br>
+To find the distance, or similarity of time series samples, I am choosing to use the inter-model distance metric called Dynamic Time Warping. DTW deals with time shifts in such a way that alow the model to compare signal patterns even if the time or phase is shifted between samples. Also, cluster centers are computed as the barycenters with respect to DTW, hence they allow the model to retrieve a sensible average shape whatever the temporal shifts in the cluster may be. Below are a couple of images to help clarify what DTW does.<br>
 
-Top plot is an exampler of time series clustering with euclidean distance.
+The top plot is an example of time series clustering with Euclidean distance chosen as the distance metric.
 ![dtw1](images/DTW_Euclid_example.svg)<br>
-Botton plot is an example of time series clustering this DTW. as you can see the cluster centers (red) represent the shape of the samples in the cluster.
+The bottom plot is an example of time series clustering this DTW. As you can see the cluster centers (red) represent the shape of the samples in the cluster.
 ![dtw2](images/DTW_example.svg)
 
-## Determining how many different activities the model can pick out of the data.
+## Determining how many different activities the model can differentiate in data.
 Below is a plot of 9 models with k hyperparameter ranging from 1 to 9.<br>
 ![elbow](images/elbow_dtw.png)
-
+ 
 This plot shows that the optimal number of clusters is 2,3 or 4. I will now make silhouette plots to compare the kmeans clustering model with 2 to 4 clusters. The silhouette value is a measure of how similar an object is to its own cluster (cohesion) compared to other clusters (separation).<br>
 ## Evaluate the model a diferent choses for cluster number
 ![km_sil_2](images/sil_plot_c2.png)<br>
 ![km_sil_3](images/sil_plot_c3.png)<br>
 ![km_sil_4](images/sil_plot_c4.png)
 
-
-The fisrt plot is of the model with a k assignment of 2. Since this model has the best cohesion and speratin of clusters, it may be picking up on a seizure cluster and a not seizure cluster.  Lets take a look at the ratio of cluster assignents on the true seizure data.<br>
->26.5% of seizure data in one cluster and 75.5% of seizure data assigned to the other cluster. This means that with the time series clustering aproach this model would miss over 25% of seizures in people.<br>
-I would like to make this better so I did some further exploration.
-
-## Normalizing signals 
-
-On further exploration it looks like the seizure data can vary greatly in it aplitude. In the figure below the orange signal is one center from the 2 k clustering model above, the orange signal is the other cluster center. The gray signals are two seperate seizure events.<br>
-![compare](images/raw_series_comparison.png)<br>
-My next step in making my model better is to normalise each sample such that the values are between 0,1.  My hope is to have the clustering model focus on the changes in apletude and pattern as aposed to the ampletude its self.<br>
+The first plot is of the model with a k assignment of 2. Since this model has the best cohesion and separation of clusters, it may be picking up on a seizure cluster and a not seizure cluster.  Let’s take a look at the ratio of cluster assignments on the true seizure data.<br>
+>26.5% of seizure data in one cluster and 75.5% of seizure data assigned to the other cluster. This means that with the time series clustering approach this model would miss over 25% of seizures in people.
 
 <br>
+Next, I will see if normalizing the signals improves performance.
+
+
+## Normalizing signals
+ 
+On further exploration, it looks like the seizure data can vary greatly from sample to sample in amplitude. In the figure below the orange signal is one center from the 2 k clustering model above, the orange signal is the other cluster center. The gray signals are two separate seizure events.<br>
+![compare](images/raw_series_comparison.png)<br>
+To normalize the data I multiply every data point by the largest value in the signal such that the amplitude range is 0 to 1 for all samples.<br>
+ 
+<br>
 Here is a new elbow plot for the normalized data set.<br>
-
+ 
 ![normelbow](images/elbow_dtw_normalized.png)<br>
-This elbow in this plot is even more elusive then the previouse one on the un-normalized data set. this makes me think that this is not the right direction to go. <br>
+This elbow in this plot is even more elusive then the previous one on the un-normalized data set. This leads me to believe that this is not the right direction to go. <br>
+ 
+This non-elbow may be due to the fact that the amplitude is useful in differentiating the clusters. <br>
+ 
+From the above inspection with unsupervised learning, it appears that there is some uniqueness between the acceleration of daily activitie and seizure activity that can be picked up on from just clustering. Next, I will use the labels supplied with the data set to train a model to pick out seizure activity from everyday life more accurately.<br>
 
-This non elbow may be due to the fact that the amplitude is useful in differentiating the clusters. <br>
+# **Classification**
 
-<!--This leads me to the idea of pivoting from a time series clustering model to  makeing a dataframe of extracted features from each time series . then clustering with not time series methods.<br> -->
-
-<!--## Clustering extracted features
-??-->
-
-The clustering approach to identifying features May not be fiezable with this data set. A supurvised learning approach may have to be used in the field so next I will pivot to that.<br>
-
-# Classification
-
-## Scoreing Metric
-I chose to use recall as my primary metric in evaluating my models becasue the classes are imbalenced and a False negative could be life threatening. It would be better for a family member to contact a person with a false alarm over the persons family to not be contacted at all during a seizure event.
-
+## Scoring Metric
+I am choosing to use recall as my primary metric in evaluating the models because the classes are imbalanced with the positive being the minority. Recall is the percentage of correctly labeled positive to all truly positive samples. With unbalanced classes, a metric like accuracy may cause the model to only predict negative due to the fact the majority of labels are negative. 
+ 
 ## **Classification with 1D CNN**
-In order to preserve the pattern of the signal for the classification process I want to try a tehnique from Jiang and Yin (2015). They proposed to transform the 1D acceleration signal, into a (1 x time x channel) image like tensor. This way the data can be model wit a convelutional neural network wich are very good at picking up patterns. 
-
+In order to preserve the pattern of the signal for the classification process, I will try a technique of transform 1D acceleration signal, into a (1 x time x channel) image-like tensor. This way the data can be modeled with a convolutional neural network. The motivation is because CNNs are very good at picking up patterns.
+ 
 ## Data preprocessing
-Here, I use the rho and phi channels of my accelerometer data. I used numpy to reshape the data set into (n_samples x series_length x n_channels) shapped tensor which came out to be (137 x 206 x 2)
-
-I performed a validation train test split at 25/75 ratio for fitting. 
-
-## Architecture for 1D CNN 
-I chose this becasue it is similar to leNet, A classic simple architecture with two convolution layers, max pooling, and drop out, and two dense layers. I also chose one nueron and sigmoid activation for the output layer because I wanted to make a model that would predict seizure or no seizer in a binary manner.<br> 
+Here, I use the rho and phi channels of my accelerometer data. I am using numpy to reshape the data set into a (n_samples x series_length x n_channels) shaped tensor which came out to be (137 x 206 x 2).
+ 
+I create a validation train test split at a 25/75 ratio for fitting.
+ 
+## Architecture for 1D CNN
+I am choosing this architecture because it is similar to LeNet, a classic simple architecture with two convolution layers, max pooling, and drop out, and two dense layers after convolution. I also am choosing one neuron and sigmoid activation for the output layer because I want to make a model that would predict seizure or no seizer in a binary manner.<br>
 ![summary](images/model1_summary_2channel.png)
 
 
-
 ## How The 1D CNN  Learned
-This simple model did pretty decient with a recall score evening out at around 80. This would mean that 80 percent of seizures would be correctly identified. I would like to see if I can make this better. 
+This simple model does pretty well with a recall score evening out at around 80%. This would mean that 80 percent of seizures would be correctly identified. <br>
+ 
 ![lr_plot](images/lr_plot_model1_rhophi_300epochs.png)
-
-## CLassification with 2D CNN
-I got the idea to treat samples like spectrograms from Jiang and Yin (2015) who converted there 1 demensional time series accelreometer data into 2 dementional descrete fourier transformations. To make my own 2d fourier transformations I will take the fast forier transformation at sliding windows of time for each sample to make a spectragram like the ones use in audio data analysis.  <br>
-
-
-For each channel of each time series sample I created a spectrogram. an example of a sample and its two channels in below. <br>
+ 
+## Classification With 2D CNN
+I got the idea to treat samples like spectrograms from Jiang and Yin (2015) who converted there one-dimensional time series accelerometer data into two dimensional discrete Fourier transformations. To make my own 2d Fourier transformations I will take the fast Fourier transformation at sliding windows of time for each sample to make a spectrogram like the ones used in audio data analysis.  <br>
+ 
+ 
+For each channel of each time series sample, I will create a spectrogram. An example of a sample and its two channels is below. <br>
 ![s](images/spectrogram_sample2.png)<br>
+ 
+ 
+I am converting all samples to spectrograms transforming my data frame to the shape  (n_samples, spec_height, spec_width, n_channels) in preparation to fit with a CNN. I am using almost the exact same architecture for the last 1D CNN with some changes for 2D convolution.
 
-<!--A spectrogram is used in speech and music analysis becasue its a way to visualize the fourier transformation as time passes.-->
 
-I converted all samples to spectrograms traforming my data frame to the shape  (n_samples, spec_height, spec_width, n_channels) in preporation to fit with a CNN. I used almost the exact same architecture for the last 1D CNN with some changes for 2D convolution.
-
-## How did it learned
+## How did it learn?
 ![spectrogram_lr](images/model4_specs_300.png)
-Since the validation loss is goin up and up , instead of more training time I will make the architecture more complex (more trainable parameters) to see if it will help the model by extracting more feature out of the images.
+Since the validation loss is going up and up, instead of more training time I will make the architecture more complex (more trainable parameters) to see if it will help the model by extracting more features out of the images to learn with.
 <br>
-
+ 
 ## New Architecture
 ![deeper1](images/deeper1_sumary.png)<br>
 ![depper1_lr](images/model_deeper1_specs_300.png)
+ 
+This deeper model is not doing better in terms of recall scores. As far as loss, It does worse with the doubled amount of trainable parameters. After talking to an associate about audio analysis with spectrograms I have concluded that the reason why my spectrograms are doing so pooling may be due to the fact that they are very small. I do not know that the sample rate or length of samples was used in the  Jiang and Yin (2015) paper. But, compared to music signals that utilize spectrogram modeling, this accelerometer sampling rate is 3000 times lower leading to much fewer time windows to map to the spectrogram and very low-resolution images.
 
-This deeper model did not do better interms of recall score. As far as loss, It did worse with the doubled amount of trainable parameters. After talking to an assosiet about audio analysis with spectrograms I have concluded that the reason why my spectrograms are doing so poorying maybe due to the fact that they are very small. I do not know that the sample rate or length of samples was used in the  Jiang and Yin (2015) paper. But, compair to music audio data that utilize spectrogram modeling, this accelerometer sampling rate is 3000 times lower leading to much less time windows to map to the spectrogram and very low resulotion images.
-
-## **Long Short-term Memory Reacurant neural network (LTSM)**
-LTSM are known for there ability to classify time series data. 
+## **Long Short-term Memory Recurrent Neural Network (LTSM)**
+I am choosing to try and model with LTSMs because they are known for there ability to classify time series data.
 
 
 ## LTSM1 Neural Network
-I first try a very sime LTSM and train for 900 epochs<br>
+I first try a very simple LTSM and train for 900 epochs<br>
 ![lstm1_sum](images/LSTM1_summary.png)
-
-The recalll was extremely unstable and stayed roughly around .2 after 75 epochs. <br>
+ 
+The recall is extremely unstable and is staying roughly around 2% after 75 epochs. <br>
 ![LSTME1_lr](images/LSTM1_900epochs.png)
-
-Next I try increasing the amount of trainable peramters by increaseing the number of neurons per layer to see if this helps the network learn.
+ 
+Next, I try increasing the number of trainable parameters by increasing the number of neurons per layer to see if this helps the network learn.
 ![lstm2_sum](images/LSTM2_summary.png)<br>
-This increased the trainable parameters by an order of magnetude.<br>
-
-TThis chnge does not seem to be doing the trick. Recall is still low and very irratic.<br>
+This increased the trainable parameters by an order of magnitude.<br>
+ 
+This change does not seem to be doing the trick. The recall is still low and very erratic.<br>
 ![lstm2_lr](images/LSTM2_300epochs.png)<br>
-
-Before changing direction with my model I first wanted to try making this LSTM NN deeper. Below is a the summary of a third LSTM that I added two dence layers and and added more neorons per layer then the first but less then the second for training time perposes. <br>
+ 
+I will now make the LSTM deeper in hopes of improving this model before moving on to the next classification model. Below is a summary of the third LSTM. I am adding two more LSTM layers and added more neurons per layer but less than the second model for training time purposes. Below is an image of the architecture summary and plots of learning rate.<br>
 ![LSTM3_sum](images/LSTM3_summary.png)<br>
-
-The Learning plots of this deeper LSTM network are below:<br>
 ![LSTM3_lr](images/LSTM3_300epochs.png)<br>
-This deeper model seems to have some peek recall scores higher then the other two LSTM but it is showing signs of over fitting. the validation and test scores are deviating. <br>
-
-Lets add 50% drop out at the hidden layers out to the deep model to see if this helps wit over fitting.<br>
-![LSTM3_DO](images/LSTM3_with_do_epochs.png)<br>
-Adding drop out di prevent the the over fitting but after alot of time training the model is very iratic and the recall still pretty low. <br>
-
-So car the simple 1D convolutional neural network ahas worked the bestso I am going to go back to something like that except adopt architecture idea from an arcitecture that was designed for time series.
+ 
+This deeper model seems to have some peek recall scores higher than the other two LSTM but it is showing signs of overfitting. The validation and test scores are deviating. <br>
+ 
+Below is a learning rate plot after adding 50% drop out on the hidden layers to see if this helps with overfitting. I also fit for many more epochs to see if the recall and loss stabilize.<br>
+![LSTM3_DO](images/LSTM3_1200epochs.png)<br>
+Adding drop out did prevent the overfitting but after a lot of time training the model is still very erratic and the recall still low compared to the simple 1D CNN model. <br>
 
 ## Simple WaveNet Architecture
-
-WaveNet was developed by DeepMind researchers in 2016 for doing audio tasks such as text-to-speech. the thing that makes wavenet unique from a simple 1d CNN is the sequentialy doubling amounts of dilation with each layer. A dilated convolutionis a convolution where the filter is applied over an area larger than its length by skipping input values with a certain step. It is 
-equivalent to a convolution with a **larger filter** derived from the 
-original filter by dilating it with zeros, but is significantly **more 
-efficient.** This is similar to pooling or strided  convolutions, but 
-here the output has the same size as the input. As a special case, 
-dilated convolution with dilation 1 yields the standard convolution.  By useing dilation the model gets a better global picture of each sample to capture more contextual information by looking a different segments of of the time series.  There is also the benifit of faster run time.
-
-Original WaveNet was made to predict a series but I chose an output layer on one neuron and a sigmoid activation function to squiz the information into a binary prediction. It also was very very deep with patters of doubling dilation. I started small with one pattered of doubling dilarion. architecture summary is below. <br>
-
+ 
+WaveNet was developed by DeepMind researchers in 2016 for doing audio tasks such as text-to-speech. The thing that makes WaveNet unique from a simple 1d CNN is the sequentially doubling amounts of dilation with each layer. A dilated convolution is a convolution where the filter is applied over an area larger than its length by skipping input values. It is
+equivalent to a convolution with a **larger filter** derived from the
+original filter by dilating it with zeros but is significantly **more
+efficient.** This is similar to pooling or striding convolutions, but
+here the output has the same size as the input. As a special case,
+dilated convolution with dilation 1 yields the standard convolution. By using dilation the model gets a better global picture of each sample to capture more contextual information by looking at different segments of the time series.  There is also the benefit of faster run time.
+ 
+Original WaveNet was made to predict a series but I am creating an output layer of one neuron and a sigmoid activation function to squeeze the output information into a binary prediction. Original WaveNet was very very deep with patters of doubling dilation. I am starting small with one pattered of doubling dilation. The architecture summary and learning plot are below. <br>
+ 
 ![simplewave_sum](images/simpleWave_summary.png)
 <br>
 ![simplewave_lr](images/simpleWave_300epochs_2.png)<br>
+ 
+This model does not show signs of overfitting. The recall is high and stable over epochs and the fitting time was very fast. <br>
 
-This model does not show signs of over fitting. The recall is high and stable over epochs and the fitting time was very fast. <br>
-
-## **Compariring Classification Models**
-The two best models by far, judging by the learning curves, are the simple 1D CNN and the 1D CNN with WaveNet style dilation which i will call simpleWave. Below I will be compairing these two models to find the best for the spacific application.<br>
-
-As a general comapairson, below is a ROC curve of the two model. <br>
+## **Comparing Classification Models**
+The two best models, judging by the learning curves, are the simple 1D CNN and the 1D CNN with WaveNet style dilation. I will be referring to the dilated CNN as simpleWave. Below I will be comparing these two models to find the best for the specific application.<br>
+ 
+As a general comparison, below is a ROC curve of the two models. <br>
 ![roc](images/ROC_top2.png)<br>
-The simpleWave model has better general performance then the 1D CNN but since there is a large cost diparity between false negatives and false positive below I will examin the models with different thresholds as to optimize them for this diparity.
+The simpleWave model has better general performance than the 1D CNN but since there is a large cost disparity between false negatives and false positive I will examine the models with different positive prediction thresholds to optimize them for this cost difference.
 
 
-## Finding the Apprpriate Thresholds 
-It is very important that the model identifies the true seizure events for obvious reasons but if a user of the product keeps getting bugged by false positives they may turn the device off. To find this balence of out comes I will find  threshold that will produce the most most benifit in the application of the model. <br>
-
-Below is a profit curve that takes into considuration the cost of each out come of the model. <br>
+## Finding the Appropriate Thresholds
+It is very important that the model identifies the true seizure events for obvious reasons but if a user of the product keeps getting bugged by false positives they may turn the device off. To find this balance of outcomes I will find a threshold that will produce the most benefit in the application of the model. <br>
+ 
+Below is a profit curve that takes into consideration the cost of each outcome of the model. I chose the cost structure below but I have a function in the source code for this project that can take in input values for the cost of each outcome or the models.<br>
 - cost of a false positive :  -5
 - cost of a true positive :   100 - 5 = 95
-
+ 
 ![roc](images/profit_curves.png)
-
-The optomal model would depend on the cost one assignes to the out comes and may take some one with indistry knowledg to decide but with the costs I listed above, the models have about the same benifit with ther respective thresholds. <ber>
-
-Below are side by side confusion matrices with the the best thresholds for profit.<br>
+ 
+The optimal model would depend on the cost one assigns to the outcomes and may take someone with industry knowledge or personal experience with epilepsy, to decide on those costs. That being said, with the costs I chose above, the models have about the same benefit with their respective thresholds. <br>
+ 
+Below are side by side confusion matrices made with the best thresholds for profit.<br>
 ![cm2](images/cm_top2.png)<br>
-
-
+ 
+ 
 # Conclusion
- - By attempting to cluster the data, it revieled that seizure data may not be unique enough for a simple time series cluster model to identify. If clustering wants to be persued , the data can be featurized andd other techniques may be more useful
- - Out of all the deep learing models tried on this data set, 1D convolutional neural network with double dilation amounts worked the best. 
- - Moving forward I believe it would benificial to try and use this dame model with data that contains other human activities
-
+- By attempting to cluster the data, it revealed that seizure activity mostly had a different pattern than other activities but may not be unique enough for a simple time-series cluster model to identify accurately. If clustering is to be pursued, the data can be featured and other techniques may be more useful.
+ - Out of all the deep learning classification models tried on this data set, simpleWave 1D convolutional neural network with double dilation amounts worked the best. Although, depending on the cost of each outcome, plain 1D CNN maybe work better.
+- Moving forward I believe it would be beneficial to try and use these same models with data that contains other human activities so as to mimic the real world more closely.
 
