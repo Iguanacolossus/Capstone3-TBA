@@ -233,16 +233,20 @@ def ts_df_to_spectrogram(ts_df, channels=2):
     return spec_df
 
 from sklearn.metrics import roc_curve
-def ROC(y_holdout, proba):
+def ROC(y_holdout, proba1,proba2,model_name1,model_name2):
+    '''model name is string for the legend in the polt'''
+    fpr2,tpr2, thresholds2 = roc_curve(y_holdout, proba2)
+    fpr1,tpr1, thresholds1 = roc_curve(y_holdout, proba1)
 
-    fpr,tpr, thresholds = roc_curve(y_holdout, proba)
     plt.plot([0,1],[0,1],linestyle='--',color='red',label='Random Guessing',alpha=.5)
-    plt.plot(fpr,tpr, label='simpleWave',color='blue')
-    
-    plt.plot([0,0,1],[0,1,1],linestyle='--',color='green', alpha=.5)
+    plt.plot(fpr1,tpr1, label=model_name1,color='blue')
+    plt.plot(fpr2,tpr2, label=model_name2,color='purple')
+    plt.plot([0,0,1],[0,1,1],linestyle='--',color='green', alpha=.5,label='perfect model')
     plt.xlabel('False Positive Rate',size=14)
     plt.ylabel('True Positive Rate',size=14)
     plt.legend()
+    plt.title('ROC Curve for Top Models',size=16)
+    plt.savefig('../images/ROC_top2.png')
     plt.show()
 
 from sklearn.metrics import precision_recall_curve
@@ -259,7 +263,8 @@ def PRC(y_holdout,proba):
     return precision, recall, thresh
 
 import seaborn as sns
-def custom_cm(y_holdout,proba,threshold,file):
+def custom_cm(y_holdout,proba,threshold,model_name):
+    '''model name must be a string for the legend'''
     tp,fp,tn,fn = 0,0,0,0
     for i, (y_hold,prob) in enumerate(zip(y_holdout,proba)):
         # if y_hold = 1 and prob > thresh --> tp
@@ -283,6 +288,126 @@ def custom_cm(y_holdout,proba,threshold,file):
     plt.xlabel('Ground Truth',size=16)
     plt.yticks([.5,1.5],['positive','negative'])
     plt.ylabel('Predicted',size=16)
-    plt.title('Confusion Matrix simpleWave ',size=14)
+    plt.title(f'Confusion Matrix {model_name} ',size=14)
     
     #plt.savefig(f'../images/{file}.png')
+
+def label_matrix(probas, thresh):
+    return (probas>=thresh).astype(int)
+
+from sklearn.metrics import roc_curve
+def profit_curve(model_dict,X,y):
+    ''' model_dict is a diction ary where the key is the tring name of a model and the value is the actial model object'''
+    #maybe input() in here for costs
+    FP_price = float(input('Price of False Positive:'))
+    FN_price = float(input('Price of False Negative:'))
+    TP =  float(input('Price of True Positive:'))
+    TN =  float(input('Price of True Negative:'))
+    #manual make utility matrix
+    utility_M = np.array([[TP,FP_price],[FN_price,TN]])
+    
+    for name,mod in model_dict.items():
+        #predictions probablies
+        proba = mod.predict_proba(X)
+        
+        #retrieving a list of thresholds
+        thresholds = np.linspace(1,0,50)
+        
+    
+        # cost at thresh
+        cost_list = []
+ 
+        for thresh in thresholds:
+            tp,fp,tn,fn = 0,0,0,0
+            # calsulate prediction at each thresh and find number of TP,FP,FN,TN
+            for i, (y_hold,prob) in enumerate(zip(y,proba)):
+                if y_hold == 1:
+                    if prob > thresh:
+                        tp += 1
+                    else:
+                        fn += 1
+                elif y_hold ==0:
+                    if prob > thresh:
+                        fp += 1
+                    else:
+                        tn +=1
+            # [[tp,fp],[fn,tn]]
+            # make cm and find cost append to cost list
+            cm = np.array([[tp,fp],[fn,tn]])
+            norm_cm = cm/(np.sum(cm))
+            cost = np.sum(norm_cm * utility_M)
+            cost_list.append(cost)
+        
+        best_thresh = thresholds[np.argmax(cost_list)]
+        plt.plot(thresholds,cost_list,label=name+f':  ${max(cost_list):.1f} at {best_thresh:.4f}')
+        plt.vlines(best_thresh,min(cost_list),max(cost_list),linestyle='--',color=(.6,.6,.6))
+        plt.hlines(max(cost_list),-.03,best_thresh,linestyle='--',color=(.6,.6,.6))
+        plt.ylabel('Cost / Profit',size=14)
+        plt.xlabel('Threshold for Positive Classification',size=14)
+        plt.title('Profit Curve',size=16)
+        #plt.text(best_thresh+.01, max(cost_list)/2 ,s=f'{best_thresh:.4f}')
+        plt.xlim(-.03,1.005)
+        plt.ylim(min(cost_list),2+max(cost_list))
+        plt.legend(loc='lower right')
+        #plt.savefig('../images/profit_curves.png')
+    return best_thresh
+
+def custom_cm2(y_holdout,proba1,proba2,threshold1,threshold2,model_name1,model_name2):
+    '''model name must be a string for the legend'''
+    tp,fp,tn,fn = 0,0,0,0
+    tp2,fp2,tn2,fn2 = 0,0,0,0
+    for i, (y_hold,prob) in enumerate(zip(y_holdout,proba1)):
+        # if y_hold = 1 and prob > thresh --> tp
+        # if y_hold = 1 and prob < thresh --> fn
+        #if y_hold = 0 and prob > thresh --> fp
+        #if y_hold = 0 and prob < thresh --> tn
+        if y_hold == 1:
+            if prob > threshold1:
+                tp += 1
+            else:
+                fn += 1
+        elif y_hold ==0:
+            if prob > threshold1:
+                fp += 1
+            else:
+                tn +=1
+    for i, (y_hold,prob) in enumerate(zip(y_holdout,proba2)):
+        # if y_hold = 1 and prob > thresh --> tp
+        # if y_hold = 1 and prob < thresh --> fn
+        #if y_hold = 0 and prob > thresh --> fp
+        #if y_hold = 0 and prob < thresh --> tn
+        if y_hold == 1:
+            if prob > threshold2:
+                tp2 += 1
+            else:
+                fn2 += 1
+        elif y_hold ==0:
+            if prob > threshold2:
+                fp2 += 1
+            else:
+                tn2 +=1
+    # [[tp,fp],[fn,tn]]
+
+    cm = [[tp/len(y_holdout),fp/len(y_holdout)],[fn/len(y_holdout),tn/len(y_holdout)]]
+    cm2 = [[tp2/len(y_holdout),fp2/len(y_holdout)],[fn2/len(y_holdout),tn2/len(y_holdout)]]
+    fig, axs = plt.subplots(1,2,figsize=(9,3), sharex=True,constrained_layout=True)
+
+    sns.heatmap(cm,annot=True,cmap='Purples',ax=axs[0],cbar=False)
+    sns.heatmap(cm2,annot=True,cmap='Purples',ax=axs[1],cbar=False)
+
+
+    axs[0].set_xticklabels(['positive','negative'])
+    axs[1].set_xticklabels(['positive','negative'])
+    axs[0].set_xlabel('Ground Truth',size=16)
+    axs[1].set_xlabel('Ground Truth',size=16)
+    axs[0].set_yticklabels(['positive','negative'])
+    axs[1].set_yticklabels(['positive','negative'])
+    axs[0].set_ylabel('Predicted',size=17)
+    axs[1].set_ylabel('Predicted',size=17)
+    axs[0].set_title('simpleWave')
+    axs[1].set_title('1D CNN')
+    
+    fig.suptitle(f'Confusion Matrices: Top 2 Models',size=18)
+    #plt.tight_layout()
+    
+    plt.savefig(f'../images/cm_top2.png')

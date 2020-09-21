@@ -154,34 +154,32 @@ dilated convolution with dilation 1 yields the standard convolution.  By useing 
 Original WaveNet was made to predict a series but I chose an output layer on one neuron and a sigmoid activation function to squiz the information into a binary prediction. It also was very very deep with patters of doubling dilation. I started small with one pattered of doubling dilarion. architecture summary is below. <br>
 
 ![simplewave_sum](images/simpleWave_summary.png)
-
-Judging by the learning curve this model is our best so far.<br>
+<br>
 ![simplewave_lr](images/simpleWave_300epochs_2.png)<br>
 
-This model does not show signs of over fitting. The recall is high and stable over epochs and the fitting time was very fast. I will save this model and move forward with evaluating with the hold out data that the model has never seen.<br>
+This model does not show signs of over fitting. The recall is high and stable over epochs and the fitting time was very fast. <br>
 
-## Evaluating simpleWave 1D CNN on Holdout Data
+## **Compariring Classification Models**
+The two best models by far, judging by the learning curves, are the simple 1D CNN and the 1D CNN with WaveNet style dilation which i will call simpleWave. Below I will be compairing these two models to find the best for the spacific application.<br>
 
-Utalizing the built in threshod of model.predict() the confusion matrix for simpleWave is as follows.<br>
-![cm1](images/cm_simpleWave.png)<br>
-This confusin matrix looks pretty good but what im interested in it the fasle positives and the false nagatives. The threshold needs to be tuned such that the false negative are minimized with out in turn causing too many false positives. It is very important that the model identifies the true seizure events but if a user of the product keeps getting bugged by false positives they may turn the device off. <br>
-
-### finding the aprpriate threshold
-const benifit matrix
+As a general comapairson, below is a ROC curve of the two model. <br>
+![roc](images/ROC_top2.png)<br>
+The simpleWave model has better general performance then the 1D CNN but since there is a large cost diparity between false negatives and false positive below I will examin the models with different thresholds as to optimize them for this diparity.
 
 
-<br>
-profit curve
+## Finding the Apprpriate Thresholds 
+It is very important that the model identifies the true seizure events for obvious reasons but if a user of the product keeps getting bugged by false positives they may turn the device off. To find this balence of out comes I will find  threshold that will produce the most most benifit in the application of the model. <br>
 
-To find this balance I will have the waveNet model return the probability of each sample being positive, then compute the the f1 score of the predictions at each threshold. I am using the f1 score to assised in finding a ballnce of percision and recall.<br>
+Below is a profit curve that takes into considuration the cost of each out come of the model. <br>
+- cost of a false positive :  -5
+- cost of a true positive :   100 - 5 = 95
 
-![pr_curve](images/PR_curve.png)
+![roc](images/profit_curves.png)
 
-To see if this threshold will give us the ratio of false positive to false negativ we want I made a new confusion matrics with the threshold of .04. <br>
+The optomal model would depend on the cost one assignes to the out comes and may take some one with indistry knowledg to decide but with the costs I listed above, the models have about the same benifit with ther respective thresholds. <ber>
 
-![cm2](images/best_cm1.png)<br>
-
-With this model and this threshold the false negative are the smalles probability and the false positives are are still pretty low. I believe this is a very good model for our needs.
+Below are side by side confusion matrices with the the best thresholds for profit.<br>
+![cm2](images/cm_top2.png)<br>
 
 
 # Conclusion
