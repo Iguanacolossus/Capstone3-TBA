@@ -12,7 +12,7 @@ The data for this project was generated with healthy participants simulating the
 ## Data Pre-Processing
 I received the data in .arff format which I read into a python environment with scipy.io.arff loadarff then converted to a pandas data frame for easier inspection and manipulation. Each row of the data was a sample of one physical activity. The signal was packed into a nested list with the inner lists corisponding to the signal in the x, y, and z directions. Every sample was 206 time steps. There is also a column of the label for each activity.  Below is an image of the raw data read into a pandas data frame.<br>
 ![raw](images/raw_data_pd.png)<br>
-In the wild, this technology would be used in smartwatches and I want to make sure that if a person were to ware there watch at a different angle on their wrist that the data still reflected the same acceleration. Below, I compare the data before and after 45$^{\circ}$ rotation around the z access.
+In the wild, this technology would be used in smartwatches and I want to make sure that if a person were to ware there watch at a different angle on their wrist that the data still reflected the same acceleration. Below, I compare the data before and after 45&deg; rotation around the z access.
  <br> 
 ![coord compare](images/compare_coords_all.png)
 <br>
@@ -145,7 +145,8 @@ equivalent to a convolution with a **larger filter** derived from the
 original filter by dilating it with zeros but is significantly **more
 efficient.** This is similar to pooling or striding convolutions, but
 here the output has the same size as the input. As a special case,
-dilated convolution with dilation 1 yields the standard convolution. By using dilation the model gets a better global picture of each sample to capture more contextual information by looking at different segments of the time series.  There is also the benefit of faster run time.
+dilated convolution with dilation 1 yields the standard convolution. By using dilation the model gets a better global picture of each sample to capture more contextual information by looking at different segments of the time series.  There is also the benefit of faster run time. Below is a wisualizatin of 1D dilation:<br>
+![td](images/wavenet.png)
  
 Original WaveNet was made to predict a series but I am creating an output layer of one neuron and a sigmoid activation function to squeeze the output information into a binary prediction. Original WaveNet was very very deep with patters of doubling dilation. I am starting small with one pattered of doubling dilation. The architecture summary and learning plot are below. <br>
  
