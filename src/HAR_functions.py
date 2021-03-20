@@ -1,5 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
+
+
 #rotatation around z axis
 def rot_matrix_z(x,y,z,theta):
     '''performs a theta degree rotation around the x axis of any three demetional point in space'''
@@ -60,17 +62,14 @@ def df_to_rho(df):
     for row in df.iterrows():
         
         ### create x y z from each row
-        x_array= list(row[1][0][0])
-        x_array = np.array(x_array)
-        x_array = np.reshape(x_array,(1,-1))#[0]
+        x_array= np.array(list(row[1][0][0]))
+        x_array = np.reshape(x_array,(1,-1))
         
-        y_array = list(row[1][0][1])
-        y_array = np.array(y_array)
-        y_array = np.reshape(y_array,(1,-1))#[0]
+        y_array = np.array(list(row[1][0][1]))
+        y_array = np.reshape(y_array,(1,-1))
         
-        z_array = list(row[1][0][2])
-        z_array = np.array(z_array)
-        z_array = np.reshape(z_array,(1,-1))#[0]
+        z_array = np.array(list(row[1][0][2]))
+        z_array = np.reshape(z_array,(1,-1))
         
         #make a new sample that is just rho
         rho,theta,phi = cart_to_polar(x_array,y_array,z_array)
