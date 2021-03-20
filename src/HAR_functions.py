@@ -1,6 +1,6 @@
 import matplotlib.pyplot as plt
 import numpy as np
-
+from matplotlib import cm
 
 #rotatation around z axis
 def rot_matrix_z(x,y,z,theta):
@@ -160,7 +160,7 @@ def make_sil_plot(x,y,metric,fitted_model):
     INPUT: x = featur matrix
            y = cluter predictions
            metric = distance metric
-           fitted_model = fitted cluterin gmodel
+           fitted_model = fitted clustering model
            
     OUTPUT: no return just makes plot
     '''
@@ -170,6 +170,7 @@ def make_sil_plot(x,y,metric,fitted_model):
     y_ax_lower, y_ax_upper = 0,0
     yticks = []
     for i ,c in enumerate(cluster_labels):
+        #get the sil vals where y = the current cluster label
         c_silhouette_vals = list(compress(silhouette_vals,y==c))
 
         c_silhouette_vals = sorted(c_silhouette_vals)
