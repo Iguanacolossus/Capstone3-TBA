@@ -297,29 +297,30 @@ def label_matrix(probas, thresh):
 
 from sklearn.metrics import roc_curve
 def profit_curve(model_dict,X,y):
-    ''' model_dict is a diction ary where the key is the tring name of a model and the value is the actial model object'''
-    #maybe input() in here for costs
+    ''' model_dict is a diction ary where the key is the string name of a model and the value is the actial model object'''
+    #ask user for cost of each outcome
     FP_price = float(input('Price of False Positive:'))
     FN_price = float(input('Price of False Negative:'))
     TP =  float(input('Price of True Positive:'))
     TN =  float(input('Price of True Negative:'))
-    #manual make utility matrix
+    # manual make utility matrix
     utility_M = np.array([[TP,FP_price],[FN_price,TN]])
     
+    # gets predition probability for data for a model
     for name,mod in model_dict.items():
         #predictions probablies
         proba = mod.predict_proba(X)
         
-        #retrieving a list of thresholds
+        #rmaking a list of thresholds
         thresholds = np.linspace(1,0,50)
         
     
-        # cost at thresh
+        # cost at threshold will go here
         cost_list = []
  
         for thresh in thresholds:
             tp,fp,tn,fn = 0,0,0,0
-            # calsulate prediction at each thresh and find number of TP,FP,FN,TN
+            # calculate prediction at each thresh and find number of TP,FP,FN,TN
             for i, (y_hold,prob) in enumerate(zip(y,proba)):
                 if y_hold == 1:
                     if prob > thresh:
